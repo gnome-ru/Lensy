@@ -79,7 +79,8 @@
             "sources" : [
                 {
                     "type" : "git",
-                    "url" : "file:///home/mikhailov/Projects/Lensy"
+                    "branch" : "trash",
+                    "url" : "."
                 }
             ]
         }

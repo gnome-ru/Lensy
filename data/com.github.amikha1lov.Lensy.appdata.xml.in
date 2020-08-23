@@ -4,5 +4,8 @@
 	<metadata_license>CC0-1.0</metadata_license>
 	<project_license>GPL-3.0-or-later</project_license>
 	<description>
+        <p>
+            FIXME: GTK app.
+        </p>
 	</description>
 </component>

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist gettext-domain="lensy">
+	<schema id="com.github.amikha1lov.Lensy" path="/com/github/amikha1lov/lensy/">
+	</schema>
+</schemalist>

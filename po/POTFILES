@@ -1,0 +1,7 @@
+data/com.github.amikha1lov.Lensy.desktop.in
+data/com.github.amikha1lov.Lensy.appdata.xml.in
+data/com.github.amikha1lov.Lensy.gschema.xml
+src/window.ui
+src/main.py
+src/window.py
+

@@ -176,10 +176,10 @@ class LensyWindow(Gtk.ApplicationWindow):
        cr.set_source_surface(self.__img_surface, 0, 0)
        cr.paint()
 
-       #if self.arr_path:
-         #  self.undo_btn.set_sensitive(True)
-         #  self.clear_btn.set_sensitive(True)
-          # self.reDraw(cr)
+       if self.arr_path:
+           self.undo_btn.set_sensitive(True)
+           self.clear_btn.set_sensitive(True)
+           self.reDraw(cr)
 
 
 

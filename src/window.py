@@ -82,7 +82,7 @@ class LensyWindow(Gtk.ApplicationWindow):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         Notify.init(self.appname)
-
+        self.connect("delete-event", self.on_delete_event)
         #accel = Gtk.AccelGroup()
         #accel.connect(Gdk.keyval_from_name('s'), Gdk.ModifierType.CONTROL_MASK, 0, self.onSave)
         #accel.connect(Gdk.keyval_from_name('z'), Gdk.ModifierType.CONTROL_MASK, 0, self.onUndo)
@@ -108,7 +108,7 @@ class LensyWindow(Gtk.ApplicationWindow):
 
         pb = Gdk.pixbuf_get_from_window(window, x, y, width,height)
         self.pathImg = GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_PICTURES)
-        self.fileName =self.pathImg + "/Lensy_temp_file"
+        self.fileName =self.pathImg + "/.Lensy_temp_file"
         print(self.fileName)
         if pb:
             pb.savev(self.fileName,"png", (), ())
@@ -476,6 +476,7 @@ class LensyWindow(Gtk.ApplicationWindow):
         os.remove(fileName)
 
 
+
     @Gtk.Template.Callback()
     def onUndo(self, button):
  
@@ -538,9 +539,10 @@ class LensyWindow(Gtk.ApplicationWindow):
             if self.arr_path:
                 self.reDraw(cr)
             img = out_surface.write_to_png (filename)
-            os.remove(self.fileName)
+
 
         dialog.destroy()
+
 
 
 
@@ -624,4 +626,7 @@ class LensyWindow(Gtk.ApplicationWindow):
                 cr.arc(0, 0, 1, 0, 2 * math.pi)
                 cr.fill()
                 cr.restore()
-        
+
+
+    def on_delete_event(self,w,h):
+        os.remove(self.fileName)

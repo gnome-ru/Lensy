@@ -73,6 +73,9 @@ class LensyWindow(Gtk.ApplicationWindow):
     ellipse_tool = Gtk.Template.Child()
     numbers_tool = Gtk.Template.Child()
     free_tool = Gtk.Template.Child()
+    save_to_file_btn = Gtk.Template.Child()
+
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         Notify.init(self.appname)
@@ -532,6 +535,28 @@ class LensyWindow(Gtk.ApplicationWindow):
         self.undo_btn.set_sensitive(False)
         self.redo_btn.set_sensitive(False)
         self.drawArea.queue_draw()
+
+    @Gtk.Template.Callback()
+    def on_save_to_file_btn_clicked(self, btn):
+        dialog = Gtk.FileChooserDialog(_("Save image"), None, Gtk.FileChooserAction.SAVE, (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
+        Gtk.STOCK_SAVE, Gtk.ResponseType.OK))
+
+        dialog.set_current_name('myscreen.png')
+
+        response = dialog.run()
+
+        if response == Gtk.ResponseType.OK:
+            filename = dialog.get_filename()
+
+            out_surface = cairo.ImageSurface.create_from_png(self.fileName)
+            cr = cairo.Context(out_surface)
+            if self.arr_path:
+                self.reDraw(cr)
+            img = out_surface.write_to_png (filename)
+
+        dialog.destroy()
+
+
 
     def _open_popover_at(self, x, y):
         rectangle = Gdk.Rectangle()

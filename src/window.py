@@ -25,6 +25,7 @@ import os
 import time
 import cairo
 import math
+from datetime import datetime
 
 @Gtk.Template(resource_path='/com/github/amikha1lov/Lensy/window.ui')
 class LensyWindow(Gtk.ApplicationWindow):
@@ -55,6 +56,7 @@ class LensyWindow(Gtk.ApplicationWindow):
     arr_path = []
     tmp_arr = []
     redo_tmp_arr = []
+    pathImg = None
     main_box = Gtk.Template.Child()
     bottom_box = Gtk.Template.Child()
     color_button = Gtk.Template.Child()
@@ -73,6 +75,10 @@ class LensyWindow(Gtk.ApplicationWindow):
     ellipse_tool = Gtk.Template.Child()
     numbers_tool = Gtk.Template.Child()
     free_tool = Gtk.Template.Child()
+    save_to_file_btn = Gtk.Template.Child()
+    clipboard_btn = Gtk.Template.Child()
+
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         Notify.init(self.appname)
@@ -101,8 +107,8 @@ class LensyWindow(Gtk.ApplicationWindow):
         width,height,x,y = listCoor[0],listCoor[1],listCoor[2],listCoor[3]
 
         pb = Gdk.pixbuf_get_from_window(window, x, y, width,height)
-        pathImg = GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_PICTURES)
-        self.fileName =pathImg + "/Lensy_temp_file"
+        self.pathImg = GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_PICTURES)
+        self.fileName =self.pathImg + "/Lensy_temp_file"
         print(self.fileName)
         if pb:
             pb.savev(self.fileName,"png", (), ())
@@ -453,41 +459,21 @@ class LensyWindow(Gtk.ApplicationWindow):
 
 
     @Gtk.Template.Callback()
-    def onSave(self, button):
-        dialog = Gtk.FileChooserDialog("Please choose a folder",self,Gtk.FileChooserAction.SAVE,(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, "Save", Gtk.ResponseType.OK),)
-        dialog.set_default_size(800, 400)
-
-        response = dialog.run()
-        if response == Gtk.ResponseType.OK:
-            print("Select clicked")
-            print("Folder selected: " + dialog.get_filename())
-            self.pathAndFileName = dialog.get_filename() + ".png"
-        elif response == Gtk.ResponseType.CANCEL:
-            print("Cancel clicked")
-
-        dialog.destroy()
-
-
-        print(self.pathAndFileName)
-        self.drawing_area_write(self.pathAndFileName)
-
-
-
-    def drawing_area_write(self,path):
+    def on_clipboard_btn(self, button):
         out_surface = cairo.ImageSurface.create_from_png(self.fileName)
 
         cr = cairo.Context(out_surface)
 
         if self.arr_path:
             self.reDraw(cr)
-        img = out_surface.write_to_png (path)
+        fileName =self.pathImg + "/Lensy_temp_clipboard"
+        img = out_surface.write_to_png (fileName)
 
-        img = GdkPixbuf.Pixbuf.new_from_file(path)
+        img = GdkPixbuf.Pixbuf.new_from_file(fileName)
         clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
         clipboard.set_image(img)
         clipboard.store()
-        os.remove(self.fileName)
-
+        os.remove(fileName)
 
 
     @Gtk.Template.Callback()
@@ -532,6 +518,31 @@ class LensyWindow(Gtk.ApplicationWindow):
         self.undo_btn.set_sensitive(False)
         self.redo_btn.set_sensitive(False)
         self.drawArea.queue_draw()
+
+    @Gtk.Template.Callback()
+    def on_save_to_file_btn_clicked(self, btn):
+        dialog = Gtk.FileChooserDialog(_("Save image"), None, Gtk.FileChooserAction.SAVE, (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
+        Gtk.STOCK_SAVE, Gtk.ResponseType.OK))
+
+        final_filename = 'Lensy_' + datetime.today().strftime('%Y-%m-%d-%H:%M:%S') + '.png'
+        dialog.set_current_name(final_filename)
+        dialog.set_do_overwrite_confirmation(True)
+
+        response = dialog.run()
+
+        if response == Gtk.ResponseType.OK:
+            filename = dialog.get_filename()
+
+            out_surface = cairo.ImageSurface.create_from_png(self.fileName)
+            cr = cairo.Context(out_surface)
+            if self.arr_path:
+                self.reDraw(cr)
+            img = out_surface.write_to_png (filename)
+            os.remove(self.fileName)
+
+        dialog.destroy()
+
+
 
     def _open_popover_at(self, x, y):
         rectangle = Gdk.Rectangle()

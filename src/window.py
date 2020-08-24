@@ -25,6 +25,7 @@ import os
 import time
 import cairo
 import math
+from datetime import datetime
 
 @Gtk.Template(resource_path='/com/github/amikha1lov/Lensy/window.ui')
 class LensyWindow(Gtk.ApplicationWindow):
@@ -541,7 +542,9 @@ class LensyWindow(Gtk.ApplicationWindow):
         dialog = Gtk.FileChooserDialog(_("Save image"), None, Gtk.FileChooserAction.SAVE, (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
         Gtk.STOCK_SAVE, Gtk.ResponseType.OK))
 
-        dialog.set_current_name('myscreen.png')
+        final_filename = 'Lensy_' + datetime.today().strftime('%Y-%m-%d-%H:%M:%S') + '.png'
+        dialog.set_current_name(final_filename)
+        dialog.set_do_overwrite_confirmation(True)
 
         response = dialog.run()
 

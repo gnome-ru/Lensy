@@ -30,10 +30,7 @@ from .screenshot import Screenshot
 class Application(Gtk.Application):
     def __init__(self):
         super().__init__(application_id='com.github.amikha1lov.Lensy',
-                        # change this to flags=Gio.ApplicationFlags.HANDLES_COMMAND_LINE 
-                        # if you need to start app from command line
-                        # or flags=Gio.ApplicationFlags.FLAGS_NONE if you need a GUI
-                         flags=Gio.ApplicationFlags.FLAGS_NONE)
+                         flags=Gio.ApplicationFlags.HANDLES_COMMAND_LINE)
         self.add_main_option(
             "screen",
             ord("s"),
@@ -58,6 +55,8 @@ class Application(Gtk.Application):
             filename = 'Lensy_' + datetime.today().strftime('%Y-%m-%d-%H:%M:%S') + '.png'
             screenshot = Screenshot()
             screenshot.fullscreen(filename)
+        else:
+            self.activate()
 
         return 0
 

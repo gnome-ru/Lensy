@@ -90,7 +90,6 @@
                     <property name="margin_bottom">6</property>
                     <child>
                       <object class="GtkRadioButton" id="arrow_tool">
-                        <property name="label" translatable="yes">Arrow</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">False</property>
@@ -98,6 +97,13 @@
                         <property name="margin_right">6</property>
                         <property name="active">True</property>
                         <property name="draw_indicator">False</property>
+                        <child>
+                          <object class="GtkImage">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="pixbuf">icons/tool-line-symbolic.svg</property>
+                          </object>
+                        </child>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -333,12 +339,19 @@
             <property name="can_focus">False</property>
             <child>
               <object class="GtkButton" id="clipboard_btn">
-                <property name="label" translatable="yes">Copy to clipboard</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
+                <property name="tooltip_text" translatable="yes">Clipboard</property>
                 <property name="margin_right">6</property>
                 <signal name="clicked" handler="on_clipboard_btn" swapped="no"/>
+                <child>
+                  <object class="GtkImage">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="icon_name">edit-paste-symbolic.symbolic</property>
+                  </object>
+                </child>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -367,6 +380,23 @@
           </packing>
         </child>
         <child>
+          <object class="GtkButton">
+            <property name="can_focus">True</property>
+            <property name="receives_default">True</property>
+            <property name="always_show_image">True</property>
+            <child>
+              <object class="GtkImage">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="icon_name">zoom-in-symbolic</property>
+              </object>
+            </child>
+          </object>
+          <packing>
+            <property name="position">5</property>
+          </packing>
+        </child>
+        <child>
           <object class="GtkButton" id="clear_btn">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
@@ -385,31 +415,23 @@
           </packing>
         </child>
         <child>
-          <object class="GtkButton">
-            <property name="label" translatable="yes">Share</property>
+          <object class="GtkButton" id="share_btn">
+            <property name="visible">True</property>
             <property name="can_focus">True</property>
             <property name="receives_default">True</property>
-          </object>
-          <packing>
-            <property name="pack_type">end</property>
-            <property name="position">6</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkButton">
-            <property name="can_focus">True</property>
-            <property name="receives_default">True</property>
-            <property name="always_show_image">True</property>
+            <property name="tooltip_text" translatable="yes">Share</property>
+            <signal name="clicked" handler="on_share_btn_clicked" swapped="no"/>
             <child>
               <object class="GtkImage">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="icon_name">zoom-in-symbolic</property>
+                <property name="icon_name">send-to-symbolic.symbolic</property>
               </object>
             </child>
           </object>
           <packing>
-            <property name="position">6</property>
+            <property name="pack_type">end</property>
+            <property name="position">5</property>
           </packing>
         </child>
         <child>
@@ -428,6 +450,24 @@
           </object>
           <packing>
             <property name="position">7</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkButton" id="spinner_btn">
+            <property name="can_focus">True</property>
+            <property name="receives_default">True</property>
+            <property name="tooltip_text" translatable="yes">Share</property>
+            <child>
+              <object class="GtkSpinner">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="active">True</property>
+              </object>
+            </child>
+          </object>
+          <packing>
+            <property name="pack_type">end</property>
+            <property name="position">8</property>
           </packing>
         </child>
       </object>

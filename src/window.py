@@ -23,7 +23,8 @@ import time
 import cairo
 import math
 from datetime import datetime
-
+from imgurpython import ImgurClient
+import threading
 @Gtk.Template(resource_path='/com/github/amikha1lov/Lensy/window.ui')
 class LensyWindow(Gtk.ApplicationWindow):
     __gtype_name__ = 'LensyWindow'
@@ -73,8 +74,8 @@ class LensyWindow(Gtk.ApplicationWindow):
     free_tool = Gtk.Template.Child()
     save_to_file_btn = Gtk.Template.Child()
     clipboard_btn = Gtk.Template.Child()
-
-
+    share_btn = Gtk.Template.Child()
+    spinner_btn = Gtk.Template.Child()
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.bus = Gio.bus_get_sync(Gio.BusType.SESSION, None)
@@ -96,7 +97,7 @@ class LensyWindow(Gtk.ApplicationWindow):
         self.fileName ="/tmp/lensy_temp.png"
         final_result = self.screen_area(self.fileName)
         if not final_result[0]:
-            self.notification = Notify.Notification.new(appname, ("Please re-select the area"))
+            self.notification = Notify.Notification.new("Lensy", ("Please re-select the area"))
             self.notification.show()
             final_result = self.screen_area(self.fileName)
         self.image = GdkPixbuf.Pixbuf.new_from_file(final_result[1])
@@ -600,3 +601,35 @@ class LensyWindow(Gtk.ApplicationWindow):
                                         Gio.Cancellable.get_current())
         final_result = res.unpack()
         return final_result
+
+
+    @Gtk.Template.Callback()
+    def on_share_btn_clicked(self,button):
+        self.share_btn.set_visible(False)
+        thread = threading.Thread(target=self.ImgurUpload)
+        thread.daemon = True
+        thread.start()
+
+
+
+
+    def ImgurUpload(self):
+        self.spinner_btn.set_visible(True)
+        KEY = "bbe6f387229468f"
+        share = cairo.ImageSurface.create_from_png(self.fileName)
+        cr = cairo.Context(share)
+        if self.arr_path:
+            self.reDraw(cr)
+        fileName ="/tmp/lensy_share.png"
+        img = share.write_to_png(fileName)
+        client = ImgurClient('bbe6f387229468f',None)
+        image = client.upload_from_path(fileName)
+        self.notification = Notify.Notification.new("Lensy", ("Success.The file link is copied to the clipboard"))
+        self.notification.show()
+        clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
+        clipboard.set_text(image['link'],-1)
+        clipboard.store()
+        os.remove(fileName)
+        self.spinner_btn.set_visible(False)
+        self.share_btn.set_visible(True)
+        

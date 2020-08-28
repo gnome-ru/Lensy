@@ -14,19 +14,17 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from subprocess import Popen, PIPE
-import time
 import gi
 gi.require_version('Gtk', '3.0')
 gi.require_version('Notify', '0.7')
 from gi.repository import Gtk, Gdk, Gio, GdkPixbuf, GLib, Pango,Notify
-from subprocess import Popen, PIPE
 import os
 import time
 import cairo
 import math
 from datetime import datetime
-
+from imgurpython import ImgurClient
+import threading
 @Gtk.Template(resource_path='/com/github/amikha1lov/Lensy/window.ui')
 class LensyWindow(Gtk.ApplicationWindow):
     __gtype_name__ = 'LensyWindow'
@@ -34,7 +32,6 @@ class LensyWindow(Gtk.ApplicationWindow):
     surface = None
     __drawing = False
     numberElements = 0
-    drawType = "Drawing"
     brushSizeValue = 0
     currentWidth = 0
     currentHeight = 0
@@ -42,6 +39,7 @@ class LensyWindow(Gtk.ApplicationWindow):
     i = 0
     w = 0
     h = 0
+    bus = None
     numberCounter = 0
     elements = []
     brushColorValue =[255.0, 0.0, 0.0, 1.0]
@@ -56,7 +54,6 @@ class LensyWindow(Gtk.ApplicationWindow):
     arr_path = []
     tmp_arr = []
     redo_tmp_arr = []
-    pathImg = None
     main_box = Gtk.Template.Child()
     bottom_box = Gtk.Template.Child()
     color_button = Gtk.Template.Child()
@@ -77,12 +74,13 @@ class LensyWindow(Gtk.ApplicationWindow):
     free_tool = Gtk.Template.Child()
     save_to_file_btn = Gtk.Template.Child()
     clipboard_btn = Gtk.Template.Child()
-
-
+    share_btn = Gtk.Template.Child()
+    spinner_btn = Gtk.Template.Child()
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.bus = Gio.bus_get_sync(Gio.BusType.SESSION, None)
         Notify.init(self.appname)
-
+        self.connect("delete-event", self.on_delete_event)
         #accel = Gtk.AccelGroup()
         #accel.connect(Gdk.keyval_from_name('s'), Gdk.ModifierType.CONTROL_MASK, 0, self.onSave)
         #accel.connect(Gdk.keyval_from_name('z'), Gdk.ModifierType.CONTROL_MASK, 0, self.onUndo)
@@ -96,28 +94,16 @@ class LensyWindow(Gtk.ApplicationWindow):
         self.drawArea.add_events(Gdk.EventMask.BUTTON_PRESS_MASK)
         self.drawArea.add_events(Gdk.EventMask.BUTTON_RELEASE_MASK)
         self.drawArea.add_events(Gdk.EventMask.BUTTON_MOTION_MASK)
-        window = Gdk.get_default_root_window()
-        coordinate = Popen("slop -n -c 0.3,0.4,0.6,0.4 -l -t 0 -f '%w %h %x %y'",shell=True,stdout=PIPE).communicate()
-        listCoor = [int(i) for i in coordinate[0].decode().split()]
-        if not listCoor[0] or not listCoor[1]:
-            self.notification = Notify.Notification.new(self.appname, ("Please re-select the area"))
+        self.fileName ="/tmp/lensy_temp.png"
+        final_result = self.screen_area(self.fileName)
+        if not final_result[0]:
+            self.notification = Notify.Notification.new("Lensy", ("Please re-select the area"))
             self.notification.show()
-            return
+            final_result = self.screen_area(self.fileName)
+        self.image = GdkPixbuf.Pixbuf.new_from_file(final_result[1])
 
-        width,height,x,y = listCoor[0],listCoor[1],listCoor[2],listCoor[3]
-
-        pb = Gdk.pixbuf_get_from_window(window, x, y, width,height)
-        self.pathImg = GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_PICTURES)
-        self.fileName =self.pathImg + "/Lensy_temp_file"
-        print(self.fileName)
-        if pb:
-            pb.savev(self.fileName,"png", (), ())
-            print("Screenshot saved to screenshot.png.")
-        else:
-            print("Unable to get the screenshot.")
-
-        self.image = GdkPixbuf.Pixbuf.new_from_file(self.fileName)
         self.set_size_request(self.image.get_width(), self.image.get_height())
+
 
 
 
@@ -149,9 +135,6 @@ class LensyWindow(Gtk.ApplicationWindow):
             self.arr_path.append(self.arr_path_temp)
             self.numberElements +=1
 
-
-
-
         elif (self.__mouse_press_vector[0] == self.__mouse_current_vector[0] or self.__mouse_press_vector[1] == self.__mouse_current_vector[1]):
             return
         else:
@@ -161,8 +144,7 @@ class LensyWindow(Gtk.ApplicationWindow):
             self.redo_btn.set_sensitive(False)
             self.tmp_arr.clear()
 
-        print(len(self.arr_path))
-        print(self.numberElements)
+
 
 
 
@@ -265,28 +247,13 @@ class LensyWindow(Gtk.ApplicationWindow):
         cr.set_source_rgba(rgba[0],rgba[1],rgba[2],rgba[3])
         cr.set_line_width(self.brushSizeValue)
         cr.set_line_cap(1)
-        print(self.linePoints[0][0])
-        print(self.linePoints[0][1])
+
 
 
         #cr.move_to(self.linePoints[0][0], self.linePoints[0][1])
         #for j in self.linePoints:
         #    cr.line_to(j[1][0], j[1][1])
          #   cr.stroke()
-
-
-
-
-        print(self.linePoints)
-
-
-
-
-
-
-
-
-
 
     def drawEllipse(self, cr,draft=False):
         cr.push_group()
@@ -297,15 +264,6 @@ class LensyWindow(Gtk.ApplicationWindow):
 
         self.w = self.__mouse_current_vector[0] - self.__mouse_press_vector[0]
         self.h = self.__mouse_current_vector[1] - self.__mouse_press_vector[1]
-        print("точки нажатия")
-        print(self.__mouse_press_vector[0])
-        print(self.__mouse_press_vector[1])
-        print("высота и ширина")
-        print(self.w)
-        print(self.h)
-        print("ДвижениеFGGGGGG")
-        print(self.__mouse_current_vector[0])
-        print(self.__mouse_current_vector[1])
         cr.translate(self.__mouse_press_vector[0] + self.w /2. , self.__mouse_press_vector[1] + self.h /2. )
 
         cr.scale(self.w /2. , self.h/2.)
@@ -461,12 +419,10 @@ class LensyWindow(Gtk.ApplicationWindow):
     @Gtk.Template.Callback()
     def on_clipboard_btn(self, button):
         out_surface = cairo.ImageSurface.create_from_png(self.fileName)
-
         cr = cairo.Context(out_surface)
-
         if self.arr_path:
             self.reDraw(cr)
-        fileName =self.pathImg + "/Lensy_temp_clipboard"
+        fileName ="/tmp/lensy_clipboard"
         img = out_surface.write_to_png (fileName)
 
         img = GdkPixbuf.Pixbuf.new_from_file(fileName)
@@ -476,16 +432,12 @@ class LensyWindow(Gtk.ApplicationWindow):
         os.remove(fileName)
 
 
+
     @Gtk.Template.Callback()
     def onUndo(self, button):
- 
-
         if self.arr_path:
-
             self.tmp_arr.append(self.arr_path.pop())
-
             if self.numberElements > 0:
-
                 self.numberElements -= 1
             if self.tmp_arr[-1][0] == "Numbers":
                 if self.numberCounter < 1:
@@ -523,13 +475,10 @@ class LensyWindow(Gtk.ApplicationWindow):
     def on_save_to_file_btn_clicked(self, btn):
         dialog = Gtk.FileChooserDialog(_("Save image"), None, Gtk.FileChooserAction.SAVE, (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
         Gtk.STOCK_SAVE, Gtk.ResponseType.OK))
-
         final_filename = 'Lensy_' + datetime.today().strftime('%Y-%m-%d-%H:%M:%S') + '.png'
         dialog.set_current_name(final_filename)
         dialog.set_do_overwrite_confirmation(True)
-
         response = dialog.run()
-
         if response == Gtk.ResponseType.OK:
             filename = dialog.get_filename()
 
@@ -538,9 +487,8 @@ class LensyWindow(Gtk.ApplicationWindow):
             if self.arr_path:
                 self.reDraw(cr)
             img = out_surface.write_to_png (filename)
-            os.remove(self.fileName)
-
         dialog.destroy()
+
 
 
 
@@ -624,4 +572,64 @@ class LensyWindow(Gtk.ApplicationWindow):
                 cr.arc(0, 0, 1, 0, 2 * math.pi)
                 cr.fill()
                 cr.restore()
+
+
+    def on_delete_event(self,w,h):
+        os.remove(self.fileName)
+
+    def screen_area(self,fileName):
+        coords = self.bus.call_sync('org.gnome.Shell.Screenshot',
+                                        '/org/gnome/Shell/Screenshot',
+                                        'org.gnome.Shell.Screenshot',
+                                        'SelectArea',
+                                        None,
+                                        GLib.VariantType.new('(iiii)'),
+                                        Gio.DBusCallFlags.NONE,
+                                        -1,
+                                        Gio.Cancellable.get_current())
+        x,y,w,h = coords.unpack()
+        temp_params = [x,y,w,h, True, self.fileName]
+        params = GLib.Variant('(iiiibs)', temp_params)
+        res = self.bus.call_sync('org.gnome.Shell.Screenshot',
+                                        '/org/gnome/Shell/Screenshot',
+                                        'org.gnome.Shell.Screenshot',
+                                        'ScreenshotArea',
+                                        params,
+                                        None,
+                                        Gio.DBusCallFlags.NONE,
+                                        -1,
+                                        Gio.Cancellable.get_current())
+        final_result = res.unpack()
+        return final_result
+
+
+    @Gtk.Template.Callback()
+    def on_share_btn_clicked(self,button):
+        self.share_btn.set_visible(False)
+        thread = threading.Thread(target=self.ImgurUpload)
+        thread.daemon = True
+        thread.start()
+
+
+
+
+    def ImgurUpload(self):
+        self.spinner_btn.set_visible(True)
+        KEY = "bbe6f387229468f"
+        share = cairo.ImageSurface.create_from_png(self.fileName)
+        cr = cairo.Context(share)
+        if self.arr_path:
+            self.reDraw(cr)
+        fileName ="/tmp/lensy_share.png"
+        img = share.write_to_png(fileName)
+        client = ImgurClient('bbe6f387229468f',None)
+        image = client.upload_from_path(fileName)
+        self.notification = Notify.Notification.new("Lensy", ("Success.The file link is copied to the clipboard"))
+        self.notification.show()
+        clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
+        clipboard.set_text(image['link'],-1)
+        clipboard.store()
+        os.remove(fileName)
+        self.spinner_btn.set_visible(False)
+        self.share_btn.set_visible(True)
         

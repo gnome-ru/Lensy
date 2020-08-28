@@ -29,6 +29,7 @@ lensy_sources = [
   '__init__.py',
   'main.py',
   'window.py',
+  'screenshot.py',
 ]
 
 install_data(lensy_sources, install_dir: moduledir)

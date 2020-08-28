@@ -21,8 +21,10 @@ import gi
 gi.require_version('Gtk', '3.0')
 
 from gi.repository import Gtk, Gio
+from datetime import datetime
 
 from .window import LensyWindow
+from .screenshot import Screenshot
 
 
 class Application(Gtk.Application):

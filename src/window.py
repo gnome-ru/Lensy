@@ -25,6 +25,9 @@ import math
 from datetime import datetime
 from imgurpython import ImgurClient
 import threading
+from .screenshot import Screenshot
+
+
 @Gtk.Template(resource_path='/com/github/amikha1lov/Lensy/window.ui')
 class LensyWindow(Gtk.ApplicationWindow):
     __gtype_name__ = 'LensyWindow'
@@ -78,7 +81,7 @@ class LensyWindow(Gtk.ApplicationWindow):
     spinner_btn = Gtk.Template.Child()
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.bus = Gio.bus_get_sync(Gio.BusType.SESSION, None)
+        self.screenshot = Screenshot()
         Notify.init(self.appname)
         self.connect("delete-event", self.on_delete_event)
         #accel = Gtk.AccelGroup()
@@ -95,7 +98,7 @@ class LensyWindow(Gtk.ApplicationWindow):
         self.drawArea.add_events(Gdk.EventMask.BUTTON_RELEASE_MASK)
         self.drawArea.add_events(Gdk.EventMask.BUTTON_MOTION_MASK)
         self.fileName ="/tmp/lensy_temp.png"
-        final_result = self.screen_area(self.fileName)
+        final_result = self.screenshot.from_selected_area(self.fileName)
         if not final_result[0]:
             self.notification = Notify.Notification.new("Lensy", ("Please re-select the area"))
             self.notification.show()
@@ -576,31 +579,6 @@ class LensyWindow(Gtk.ApplicationWindow):
 
     def on_delete_event(self,w,h):
         os.remove(self.fileName)
-
-    def screen_area(self,fileName):
-        coords = self.bus.call_sync('org.gnome.Shell.Screenshot',
-                                        '/org/gnome/Shell/Screenshot',
-                                        'org.gnome.Shell.Screenshot',
-                                        'SelectArea',
-                                        None,
-                                        GLib.VariantType.new('(iiii)'),
-                                        Gio.DBusCallFlags.NONE,
-                                        -1,
-                                        Gio.Cancellable.get_current())
-        x,y,w,h = coords.unpack()
-        temp_params = [x,y,w,h, True, self.fileName]
-        params = GLib.Variant('(iiiibs)', temp_params)
-        res = self.bus.call_sync('org.gnome.Shell.Screenshot',
-                                        '/org/gnome/Shell/Screenshot',
-                                        'org.gnome.Shell.Screenshot',
-                                        'ScreenshotArea',
-                                        params,
-                                        None,
-                                        Gio.DBusCallFlags.NONE,
-                                        -1,
-                                        Gio.Cancellable.get_current())
-        final_result = res.unpack()
-        return final_result
 
 
     @Gtk.Template.Callback()

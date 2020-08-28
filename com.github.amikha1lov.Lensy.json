@@ -89,8 +89,9 @@
             "buildsystem" : "meson",
             "sources" : [
                 {
-                    "type" : "dir",
-                    "path" : "."
+                    "type" : "git",
+                    "branch" : "trash",
+                    "url" : "."
                 }
             ]
         }

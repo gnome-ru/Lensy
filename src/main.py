@@ -20,7 +20,7 @@ import gi
 
 gi.require_version('Gtk', '3.0')
 
-from gi.repository import Gtk, Gio
+from gi.repository import Gtk, Gio, GLib
 from datetime import datetime
 
 from .window import LensyWindow
@@ -30,13 +30,36 @@ from .screenshot import Screenshot
 class Application(Gtk.Application):
     def __init__(self):
         super().__init__(application_id='com.github.amikha1lov.Lensy',
+                        # change this to flags=Gio.ApplicationFlags.HANDLES_COMMAND_LINE 
+                        # if you need to start app from command line
+                        # or flags=Gio.ApplicationFlags.FLAGS_NONE if you need a GUI
                          flags=Gio.ApplicationFlags.FLAGS_NONE)
+        self.add_main_option(
+            "screen",
+            ord("s"),
+            GLib.OptionFlags.NONE,
+            GLib.OptionArg.NONE,
+            "Create fullscreen screenshot",
+            None,
+        )
 
     def do_activate(self):
         win = self.props.active_window
         if not win:
             win = LensyWindow(application=self)
+        print('activate')
         win.present()
+
+    def do_command_line(self, command_line):
+        options = command_line.get_options_dict()
+        options = options.end().unpack()
+
+        if "screen" in options:
+            filename = 'Lensy_' + datetime.today().strftime('%Y-%m-%d-%H:%M:%S') + '.png'
+            screenshot = Screenshot()
+            screenshot.fullscreen(filename)
+
+        return 0
 
 
 def main(version):

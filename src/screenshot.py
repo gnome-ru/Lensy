@@ -33,7 +33,7 @@ class Screenshot:
                                         -1,
                                         Gio.Cancellable.get_current())
         x,y,w,h = coords.unpack()
-        temp_params = [x,y,w,h, True, self.fileName]
+        temp_params = [x,y,w,h, True, filename]
         params = GLib.Variant('(iiiibs)', temp_params)
         res = self.bus.call_sync('org.gnome.Shell.Screenshot',
                                         '/org/gnome/Shell/Screenshot',
@@ -49,10 +49,9 @@ class Screenshot:
 
 
     def fullscreen(self, filename):
-        #filename = 'Lensy_' + datetime.today().strftime('%Y-%m-%d-%H:%M:%S') + '.png'
         temp_params = [True, True, filename]
         params = GLib.Variant('(bbs)', temp_params)
-        bus.call_sync('org.gnome.Shell.Screenshot',
+        self.bus.call_sync('org.gnome.Shell.Screenshot',
                         '/org/gnome/Shell/Screenshot',
                         'org.gnome.Shell.Screenshot',
                         'Screenshot',
@@ -61,4 +60,3 @@ class Screenshot:
                         Gio.DBusCallFlags.NONE,
                         -1,
                         None)
-                        

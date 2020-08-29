@@ -15,7 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from gi.repository import Gdk, Gio, GLib
+from gi.repository import Gdk, Gio, GLib,Notify
+from subprocess import Popen, PIPE
 
 class Screenshot:
 
@@ -23,16 +24,14 @@ class Screenshot:
         self.bus = Gio.bus_get_sync(Gio.BusType.SESSION, None)
 
     def from_selected_area(self, filename):
-        coords = self.bus.call_sync('org.gnome.Shell.Screenshot',
-                                        '/org/gnome/Shell/Screenshot',
-                                        'org.gnome.Shell.Screenshot',
-                                        'SelectArea',
-                                        None,
-                                        GLib.VariantType.new('(iiii)'),
-                                        Gio.DBusCallFlags.NONE,
-                                        -1,
-                                        Gio.Cancellable.get_current())
-        x,y,w,h = coords.unpack()
+        coordinate = Popen("slop -n -c 0.3,0.4,0.6,0.4 -l -t 0 -f '%w %h %x %y'",shell=True,stdout=PIPE).communicate()
+        listCoor = [int(i) for i in coordinate[0].decode().split()]
+        if not listCoor[0] or not listCoor[1]:
+            self.notification = Notify.Notification.new("Lensy", ("Please re-select the area"))
+            self.notification.show()
+            coordinate = Popen("slop -n -c 0.3,0.4,0.6,0.4 -l -t 0 -f '%w %h %x %y'",shell=True,stdout=PIPE).communicate()
+            listCoor = [int(i) for i in coordinate[0].decode().split()]
+        x,y,w,h = listCoor[2], listCoor[3], listCoor[0], listCoor[1]
         temp_params = [x,y,w,h, True, filename]
         params = GLib.Variant('(iiiibs)', temp_params)
         res = self.bus.call_sync('org.gnome.Shell.Screenshot',
@@ -43,7 +42,7 @@ class Screenshot:
                                         None,
                                         Gio.DBusCallFlags.NONE,
                                         -1,
-                                        Gio.Cancellable.get_current())
+                                        None)
         final_result = res.unpack()
         return final_result
 

@@ -17,6 +17,7 @@
 
 import sys
 import gi
+import time
 
 gi.require_version('Gtk', '3.0')
 
@@ -39,6 +40,14 @@ class Application(Gtk.Application):
             "Create fullscreen screenshot",
             None,
         )
+        self.add_main_option(
+            "d",
+            ord("d"),
+            GLib.OptionFlags.NONE,
+            GLib.OptionArg.INT,
+            "Delay screenshot",
+            None,
+        )
 
     def do_activate(self):
         win = self.props.active_window
@@ -52,6 +61,9 @@ class Application(Gtk.Application):
         options = options.end().unpack()
 
         if "screen" in options:
+            if "d" in options:
+                delay = options['d']
+                time.sleep(delay)
             filename = 'Lensy_' + datetime.today().strftime('%Y-%m-%d-%H:%M:%S') + '.png'
             screenshot = Screenshot()
             screenshot.fullscreen(filename)

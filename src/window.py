@@ -15,9 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import gi
-gi.require_version('Gtk', '3.0')
-gi.require_version('Notify', '0.7')
-from gi.repository import Gtk, Gdk, Gio, GdkPixbuf, GLib, Pango,Notify
+from gi.repository import Gtk, Gdk, Gio, GdkPixbuf, GLib, Pango, Notify
 import os
 import time
 import cairo
@@ -26,6 +24,9 @@ from datetime import datetime
 from imgurpython import ImgurClient
 import threading
 from .screenshot import Screenshot
+
+gi.require_version('Gtk', '3.0')
+gi.require_version('Notify', '0.7')
 
 
 @Gtk.Template(resource_path='/com/github/amikha1lov/Lensy/window.ui')
@@ -79,6 +80,7 @@ class LensyWindow(Gtk.ApplicationWindow):
     clipboard_btn = Gtk.Template.Child()
     share_btn = Gtk.Template.Child()
     spinner_btn = Gtk.Template.Child()
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.screenshot = Screenshot()
@@ -97,7 +99,7 @@ class LensyWindow(Gtk.ApplicationWindow):
         self.drawArea.add_events(Gdk.EventMask.BUTTON_PRESS_MASK)
         self.drawArea.add_events(Gdk.EventMask.BUTTON_RELEASE_MASK)
         self.drawArea.add_events(Gdk.EventMask.BUTTON_MOTION_MASK)
-        self.fileName ="/tmp/lensy_temp.png"
+        self.fileName = "/tmp/lensy_temp.png"
         final_result = self.screenshot.from_selected_area(self.fileName)
         if not final_result[0]:
             self.notification = Notify.Notification.new("Lensy", ("Please re-select the area"))
@@ -107,123 +109,102 @@ class LensyWindow(Gtk.ApplicationWindow):
 
         self.set_size_request(self.image.get_width(), self.image.get_height())
 
-
-
-
     @Gtk.Template.Callback()
-    def onBrushSizeChange(self,widget):
+    def onBrushSizeChange(self, widget):
         self.brushSizeValue = self.brushSizeProp.get_value()
 
     @Gtk.Template.Callback()
-    def onColorSet(self,widget):
+    def onColorSet(self, widget):
         rgba = widget.get_rgba()
         self.brushColorValue = [rgba.red, rgba.green, rgba.blue, rgba.alpha]
 
     @Gtk.Template.Callback()
-    def onButtonPress(self,widget,event):
+    def onButtonPress(self, widget, event):
         self.__drawing = True
         self.__mouse_press_vector = [event.x, event.y]
         self.linePoints.append([event.x, event.y])
 
     @Gtk.Template.Callback()
-    def onButtonRelease(self,widget,event):
+    def onButtonRelease(self, widget, event):
         self.__drawing = False
         self.__mouse_current_vector = [event.x, event.y]
         del self.linePoints[:]
         self.drawArea.queue_draw()
 
-
         if self.numbers_tool.get_active():
             self.drawNumbers()
             self.arr_path.append(self.arr_path_temp)
-            self.numberElements +=1
+            self.numberElements += 1
 
-        elif (self.__mouse_press_vector[0] == self.__mouse_current_vector[0] or self.__mouse_press_vector[1] == self.__mouse_current_vector[1]):
+        elif (self.__mouse_press_vector[0] == self.__mouse_current_vector[0]
+              or self.__mouse_press_vector[1] == self.__mouse_current_vector[1]):
             return
         else:
             self.arr_path.append(self.arr_path_temp)
-            self.numberElements +=1
+            self.numberElements += 1
         if len(self.arr_path) == self.numberElements:
             self.redo_btn.set_sensitive(False)
             self.tmp_arr.clear()
 
-
-
-
-
     @Gtk.Template.Callback()
-    def onDraw(self,area,cr):
-       self.drawArea.set_size_request(self.__img_surface.get_width(), self.__img_surface.get_height())
+    def onDraw(self, area, cr):
+        self.drawArea.set_size_request(self.__img_surface.get_width(),
+                                       self.__img_surface.get_height())
 
-       if self.__img_surface is None:
+        if self.__img_surface is None:
             return
 
+        w = area.get_allocated_width()
+        h = area.get_allocated_height()
 
-       w = area.get_allocated_width()
-       h = area.get_allocated_height()
+        if not self.__fg_surface:
+            self.__fg_surface = cairo.ImageSurface(cairo.Format.ARGB32, w, h)
+        cr.set_source_surface(self.__img_surface, 0, 0)
+        cr.paint()
 
-       if not self.__fg_surface:
-           self.__fg_surface = cairo.ImageSurface(cairo.Format.ARGB32, w, h)
-       cr.set_source_surface(self.__img_surface, 0, 0)
-       cr.paint()
+        if self.arr_path:
+            self.undo_btn.set_sensitive(True)
+            self.clear_btn.set_sensitive(True)
+            self.reDraw(cr)
 
-       if self.arr_path:
-           self.undo_btn.set_sensitive(True)
-           self.clear_btn.set_sensitive(True)
-           self.reDraw(cr)
-
-
-
-
-
-       if self.__drawing:
-           if not self.__tmp_surface:
-               self.__tmp_surface = cairo.ImageSurface(cairo.Format.ARGB32, w, h)
-           cr.set_source_surface(self.__tmp_surface)
-           if self.square_tool.get_active() or self.square_nofill_tool.get_active():
+        if self.__drawing:
+            if not self.__tmp_surface:
+                self.__tmp_surface = cairo.ImageSurface(cairo.Format.ARGB32, w, h)
+            cr.set_source_surface(self.__tmp_surface)
+            if self.square_tool.get_active() or self.square_nofill_tool.get_active():
                 self.__draw_square(cr, True)
-           if self.line_tool.get_active():
-                self.drawLine(cr,True)
-           if self.arrow_tool.get_active():
+            if self.line_tool.get_active():
+                self.drawLine(cr, True)
+            if self.arrow_tool.get_active():
                 self.drawArrow(cr, True)
-           if self.ellipse_tool.get_active():
+            if self.ellipse_tool.get_active():
                 self.drawEllipse(cr, True)
 
-           if self.free_tool.get_active():
+            if self.free_tool.get_active():
                 self.drawFree(cr, True)
 
-
-
-
-
-
-           cr.paint()
-       elif self.__tmp_surface:
-           cr.set_source_surface(self.__fg_surface, 0, 0)
-           if self.square_tool.get_active() or self.square_nofill_tool.get_active():
+            cr.paint()
+        elif self.__tmp_surface:
+            cr.set_source_surface(self.__fg_surface, 0, 0)
+            if self.square_tool.get_active() or self.square_nofill_tool.get_active():
                 self.__draw_square(cr)
-           if self.line_tool.get_active():
+            if self.line_tool.get_active():
                 self.drawLine(cr)
-           if self.arrow_tool.get_active():
+            if self.arrow_tool.get_active():
                 self.drawArrow(cr)
-           if self.ellipse_tool.get_active():
+            if self.ellipse_tool.get_active():
                 self.drawEllipse(cr)
-           if self.free_tool.get_active():
+            if self.free_tool.get_active():
                 self.drawFree(cr)
 
+            self.__tmp_surface = None
+        else:
+            cr.set_source_surface(self.__fg_surface, 0, 0)
 
-           self.__tmp_surface = None
-       else:
-           cr.set_source_surface(self.__fg_surface, 0, 0)
-
-
-
-       cr.paint()
-
-
+        cr.paint()
 
     @Gtk.Template.Callback()
-    def onConfigure(self,area,event, data = None):
+    def onConfigure(self, area, event, data=None):
         w = area.get_allocated_width()
         h = area.get_allocated_height()
 
@@ -231,26 +212,24 @@ class LensyWindow(Gtk.ApplicationWindow):
             self.__img_surface = cairo.ImageSurface.create_from_png(self.fileName)
 
         context = cairo.Context(self.__img_surface)
-        context.set_source_rgba(1,1,1,1.0)
+        context.set_source_rgba(1, 1, 1, 1.0)
         self.set_size_request(self.__img_surface.get_width(),
                               self.__img_surface.get_height())
         return True
 
-
     @Gtk.Template.Callback()
-    def onMotion(self,area,event):
-       if self.__drawing:
+    def onMotion(self, area, event):
+        if self.__drawing:
             self.__mouse_current_vector = [event.x, event.y]
             self.linePoints.append([event.x, event.y])
             self.drawArea.queue_draw()
 
-    def drawFree(self, cr,draft=False):
+    def drawFree(self, cr, draft=False):
         cr = cairo.Context(self.__img_surface)
         rgba = self.brushColorValue
-        cr.set_source_rgba(rgba[0],rgba[1],rgba[2],rgba[3])
+        cr.set_source_rgba(rgba[0], rgba[1], rgba[2], rgba[3])
         cr.set_line_width(self.brushSizeValue)
         cr.set_line_cap(1)
-
 
 
         #cr.move_to(self.linePoints[0][0], self.linePoints[0][1])
@@ -258,11 +237,11 @@ class LensyWindow(Gtk.ApplicationWindow):
         #    cr.line_to(j[1][0], j[1][1])
          #   cr.stroke()
 
-    def drawEllipse(self, cr,draft=False):
+    def drawEllipse(self, cr, draft=False):
         cr.push_group()
 
         cr.save()
-        cr.set_source_rgba(self.brushColorValue[0],self.brushColorValue[1],self.brushColorValue[2],self.brushColorValue[3])
+        cr.set_source_rgba(self.brushColorValue[0], self.brushColorValue[1], self.brushColorValue[2], self.brushColorValue[3])
         cr.set_line_width(self.brushSizeValue)
 
         self.w = self.__mouse_current_vector[0] - self.__mouse_press_vector[0]
@@ -610,4 +589,4 @@ class LensyWindow(Gtk.ApplicationWindow):
         os.remove(fileName)
         self.spinner_btn.set_visible(False)
         self.share_btn.set_visible(True)
-        
+

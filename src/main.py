@@ -18,13 +18,13 @@
 import sys
 import gi
 
-gi.require_version('Gtk', '3.0')
-
 from gi.repository import Gtk, Gio, GLib
 from datetime import datetime
 
 from .window import LensyWindow
 from .screenshot import Screenshot
+
+gi.require_version('Gtk', '3.0')
 
 
 class Application(Gtk.Application):
@@ -52,7 +52,8 @@ class Application(Gtk.Application):
         options = options.end().unpack()
 
         if "screen" in options:
-            filename = 'Lensy_' + datetime.today().strftime('%Y-%m-%d-%H:%M:%S') + '.png'
+            filename = 'Lensy_',
+            + datetime.today().strftime('%Y-%m-%d-%H:%M:%S') + '.png'
             screenshot = Screenshot()
             screenshot.fullscreen(filename)
         else:

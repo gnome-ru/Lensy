@@ -46,7 +46,7 @@ class LensyWindow(Gtk.ApplicationWindow):
     bus = None
     numberCounter = 0
     elements = []
-    brushColorValue =[255.0, 0.0, 0.0, 1.0]
+    brushColorValue = [255.0, 0.0, 0.0, 1.0]
     __mouse_press_vector = None
     __mouse_current_vector = None
     __img_surface = None
@@ -86,10 +86,10 @@ class LensyWindow(Gtk.ApplicationWindow):
         self.screenshot = Screenshot()
         Notify.init(self.appname)
         self.connect("delete-event", self.on_delete_event)
-        #accel = Gtk.AccelGroup()
-        #accel.connect(Gdk.keyval_from_name('s'), Gdk.ModifierType.CONTROL_MASK, 0, self.onSave)
-        #accel.connect(Gdk.keyval_from_name('z'), Gdk.ModifierType.CONTROL_MASK, 0, self.onUndo)
-        #self.add_accel_group(accel)
+        # accel = Gtk.AccelGroup()
+        # accel.connect(Gdk.keyval_from_name('s'), Gdk.ModifierType.CONTROL_MASK, 0, self.onSave)
+        # accel.connect(Gdk.keyval_from_name('z'), Gdk.ModifierType.CONTROL_MASK, 0, self.onUndo)
+        # self.add_accel_group(accel)
         self.undo_btn.set_sensitive(False)
         self.redo_btn.set_sensitive(False)
         self.clear_btn.set_sensitive(False)
@@ -231,49 +231,45 @@ class LensyWindow(Gtk.ApplicationWindow):
         cr.set_line_width(self.brushSizeValue)
         cr.set_line_cap(1)
 
-
-        #cr.move_to(self.linePoints[0][0], self.linePoints[0][1])
-        #for j in self.linePoints:
+        # cr.move_to(self.linePoints[0][0], self.linePoints[0][1])
+        # for j in self.linePoints:
         #    cr.line_to(j[1][0], j[1][1])
-         #   cr.stroke()
+        #   cr.stroke()
 
     def drawEllipse(self, cr, draft=False):
         cr.push_group()
 
         cr.save()
-        cr.set_source_rgba(self.brushColorValue[0], self.brushColorValue[1], self.brushColorValue[2], self.brushColorValue[3])
+        cr.set_source_rgba(self.brushColorValue[0], self.brushColorValue[1], self.brushColorValue[2],
+                           self.brushColorValue[3])
         cr.set_line_width(self.brushSizeValue)
 
         self.w = self.__mouse_current_vector[0] - self.__mouse_press_vector[0]
         self.h = self.__mouse_current_vector[1] - self.__mouse_press_vector[1]
-        cr.translate(self.__mouse_press_vector[0] + self.w /2. , self.__mouse_press_vector[1] + self.h /2. )
+        cr.translate(self.__mouse_press_vector[0] + self.w / 2., self.__mouse_press_vector[1] + self.h / 2.)
 
-        cr.scale(self.w /2. , self.h/2.)
+        cr.scale(self.w / 2., self.h / 2.)
 
         cr.new_path()
         cr.arc(0, 0, 1, 0, 2 * math.pi)
         cr.fill()
 
-
         cr.restore()
         coord_temp = []
-        coord_temp.append(["Ellipse",self.brushColorValue,self.__mouse_press_vector[0],self.__mouse_press_vector[1],self.__mouse_current_vector[0],self.__mouse_current_vector[1],self.brushSizeValue])
+        coord_temp.append(["Ellipse", self.brushColorValue, self.__mouse_press_vector[0], self.__mouse_press_vector[1],
+                           self.__mouse_current_vector[0], self.__mouse_current_vector[1], self.brushSizeValue])
         cr.pop_group_to_source()
-
 
         self.arr_path_temp = coord_temp[-1]
 
-
-
-
-    def drawLine(self, cr,draft=False):
+    def drawLine(self, cr, draft=False):
         if not all([self.__mouse_press_vector, self.__mouse_current_vector]):
-           return
+            return
 
         cr.push_group()
-        cr.set_source_rgba(self.brushColorValue[0],self.brushColorValue[1],self.brushColorValue[2],self.brushColorValue[3])
+        cr.set_source_rgba(self.brushColorValue[0], self.brushColorValue[1], self.brushColorValue[2],
+                           self.brushColorValue[3])
         cr.set_line_width(self.brushSizeValue)
-
 
         cr.move_to(*self.__mouse_press_vector)
         cr.line_to(*self.__mouse_current_vector)
@@ -283,94 +279,93 @@ class LensyWindow(Gtk.ApplicationWindow):
             cr.close_path()
         cr.stroke_preserve()
         coord_temp = []
-        coord_temp.append(["Line",self.brushColorValue,self.__mouse_press_vector[0],self.__mouse_press_vector[1],self.__mouse_current_vector[0],self.__mouse_current_vector[1],self.brushSizeValue])
+        coord_temp.append(["Line", self.brushColorValue, self.__mouse_press_vector[0], self.__mouse_press_vector[1],
+                           self.__mouse_current_vector[0], self.__mouse_current_vector[1], self.brushSizeValue])
 
         cr.pop_group_to_source()
 
         self.arr_path_temp = coord_temp[-1]
 
-    def drawArrow(self, cr,draft=False):
-       if not all([self.__mouse_press_vector, self.__mouse_current_vector]):
-           return
+    def drawArrow(self, cr, draft=False):
+        if not all([self.__mouse_press_vector, self.__mouse_current_vector]):
+            return
 
-       cr.push_group()
-       cr.set_source_rgba(self.brushColorValue[0],self.brushColorValue[1],self.brushColorValue[2],self.brushColorValue[3])
-       cr.set_line_width(self.brushSizeValue)
-       cr.set_line_cap(cairo.LINE_CAP_ROUND)
-       cr.move_to(*self.__mouse_press_vector)
+        cr.push_group()
+        cr.set_source_rgba(self.brushColorValue[0], self.brushColorValue[1], self.brushColorValue[2],
+                           self.brushColorValue[3])
+        cr.set_line_width(self.brushSizeValue)
+        cr.set_line_cap(cairo.LINE_CAP_ROUND)
+        cr.move_to(*self.__mouse_press_vector)
 
-       cr.line_to(*self.__mouse_current_vector)
+        cr.line_to(*self.__mouse_current_vector)
 
-       cr.stroke()
+        cr.stroke()
 
-       angle = math.atan2 (self.__mouse_current_vector[1]-self.__mouse_press_vector[1],self.__mouse_current_vector[0]-self.__mouse_press_vector[0]) + math.pi
-       arrow_degrees = 0.5
-       arrow_length = 20
+        angle = math.atan2(self.__mouse_current_vector[1] - self.__mouse_press_vector[1],
+                           self.__mouse_current_vector[0] - self.__mouse_press_vector[0]) + math.pi
+        arrow_degrees = 0.5
+        arrow_length = 20
 
-       xA = None
-       yA = None
-       xB = None
-       yB = None
+        xA = None
+        yA = None
+        xB = None
+        yB = None
 
-       xA = self.__mouse_current_vector[0] + arrow_length * math.cos(angle - arrow_degrees)
-       yA = self.__mouse_current_vector[1] + arrow_length * math.sin(angle - arrow_degrees)
-       xB = self.__mouse_current_vector[0] + arrow_length * math.cos(angle + arrow_degrees)
-       yB = self.__mouse_current_vector[1] + arrow_length * math.sin(angle + arrow_degrees)
+        xA = self.__mouse_current_vector[0] + arrow_length * math.cos(angle - arrow_degrees)
+        yA = self.__mouse_current_vector[1] + arrow_length * math.sin(angle - arrow_degrees)
+        xB = self.__mouse_current_vector[0] + arrow_length * math.cos(angle + arrow_degrees)
+        yB = self.__mouse_current_vector[1] + arrow_length * math.sin(angle + arrow_degrees)
 
-       cr.move_to(self.__mouse_current_vector[0],self.__mouse_current_vector[1])
-       cr.line_to(xA,yA)
-       cr.move_to(self.__mouse_current_vector[0],self.__mouse_current_vector[1])
-       cr.line_to(xB,yB)
+        cr.move_to(self.__mouse_current_vector[0], self.__mouse_current_vector[1])
+        cr.line_to(xA, yA)
+        cr.move_to(self.__mouse_current_vector[0], self.__mouse_current_vector[1])
+        cr.line_to(xB, yB)
 
-       cr.stroke()
-       if draft:
-           cr.stroke_preserve()
-       else:
-           cr.close_path()
-       cr.stroke_preserve()
-       coord_temp = []
-       coord_temp.append(["Arrow",self.brushColorValue,self.__mouse_press_vector[0],self.__mouse_press_vector[1],self.__mouse_current_vector[0],self.__mouse_current_vector[1],self.brushSizeValue])
-       cr.pop_group_to_source()
-       self.arr_path_temp = coord_temp[-1]
+        cr.stroke()
+        if draft:
+            cr.stroke_preserve()
+        else:
+            cr.close_path()
+        cr.stroke_preserve()
+        coord_temp = []
+        coord_temp.append(["Arrow", self.brushColorValue, self.__mouse_press_vector[0], self.__mouse_press_vector[1],
+                           self.__mouse_current_vector[0], self.__mouse_current_vector[1], self.brushSizeValue])
+        cr.pop_group_to_source()
+        self.arr_path_temp = coord_temp[-1]
 
     def drawNumbers(self):
 
         cr = cairo.Context(self.__img_surface)
         cr.push_group()
-        cr.set_source_rgba(self.brushColorValue[0],self.brushColorValue[1],self.brushColorValue[2],self.brushColorValue[3])
-        cr.arc(self.__mouse_press_vector[0], self.__mouse_press_vector[1], 15, 0, 2*math.pi)
+        cr.set_source_rgba(self.brushColorValue[0], self.brushColorValue[1], self.brushColorValue[2],
+                           self.brushColorValue[3])
+        cr.arc(self.__mouse_press_vector[0], self.__mouse_press_vector[1], 15, 0, 2 * math.pi)
         cr.fill()
-        cr.set_source_rgba(255, 255, 255,1)
+        cr.set_source_rgba(255, 255, 255, 1)
         cr.select_font_face("Purisa", cairo.FONT_SLANT_NORMAL,
-            cairo.FONT_WEIGHT_BOLD)
+                            cairo.FONT_WEIGHT_BOLD)
         cr.set_font_size(12)
 
         self.numberCounter += 1
 
-        cr.move_to(self.__mouse_press_vector[0]-4,self.__mouse_press_vector[1]+5)
+        cr.move_to(self.__mouse_press_vector[0] - 4, self.__mouse_press_vector[1] + 5)
 
-        text=str(self.numberCounter)
+        text = str(self.numberCounter)
         cr.show_text(text)
 
         coord_temp = []
-        coord_temp.append(["Numbers",self.brushColorValue,self.__mouse_press_vector[0],self.__mouse_press_vector[1],self.__mouse_press_vector[0]-4,self.__mouse_press_vector[1]+5,text])
+        coord_temp.append(["Numbers", self.brushColorValue, self.__mouse_press_vector[0], self.__mouse_press_vector[1],
+                           self.__mouse_press_vector[0] - 4, self.__mouse_press_vector[1] + 5, text])
         self.arr_path_temp = coord_temp[-1]
         cr.pop_group_to_source()
-
-
-
-
-
-
-
-
 
     def __draw_square(self, cr, draft=False):
         if not all([self.__mouse_press_vector, self.__mouse_current_vector]):
             return
 
         cr.push_group()
-        cr.set_source_rgba(self.brushColorValue[0],self.brushColorValue[1],self.brushColorValue[2],self.brushColorValue[3])
+        cr.set_source_rgba(self.brushColorValue[0], self.brushColorValue[1], self.brushColorValue[2],
+                           self.brushColorValue[3])
         cr.set_line_width(self.brushSizeValue)
         cr.move_to(*self.__mouse_press_vector)
         cr.line_to(self.__mouse_press_vector[0], self.__mouse_current_vector[1])
@@ -384,19 +379,20 @@ class LensyWindow(Gtk.ApplicationWindow):
             else:
                 cr.close_path()
                 cr.stroke_preserve()
-            coord_temp.append(["Square(NoFill)",self.brushColorValue,cr.get_current_point()[0],cr.get_current_point()[1],self.__mouse_current_vector[0],self.__mouse_current_vector[1],self.brushSizeValue])
+            coord_temp.append(
+                ["Square(NoFill)", self.brushColorValue, cr.get_current_point()[0], cr.get_current_point()[1],
+                 self.__mouse_current_vector[0], self.__mouse_current_vector[1], self.brushSizeValue])
         else:
             if draft:
                 cr.fill_preserve()
             else:
                 cr.close_path()
                 cr.fill_preserve()
-            coord_temp.append(["Square",self.brushColorValue,cr.get_current_point()[0],cr.get_current_point()[1],self.__mouse_current_vector[0],self.__mouse_current_vector[1],self.brushSizeValue])
+            coord_temp.append(["Square", self.brushColorValue, cr.get_current_point()[0], cr.get_current_point()[1],
+                               self.__mouse_current_vector[0], self.__mouse_current_vector[1], self.brushSizeValue])
 
         cr.pop_group_to_source()
         self.arr_path_temp = coord_temp[-1]
-
-
 
     @Gtk.Template.Callback()
     def on_clipboard_btn(self, button):
@@ -404,16 +400,14 @@ class LensyWindow(Gtk.ApplicationWindow):
         cr = cairo.Context(out_surface)
         if self.arr_path:
             self.reDraw(cr)
-        fileName ="/tmp/lensy_clipboard"
-        img = out_surface.write_to_png (fileName)
+        fileName = "/tmp/lensy_clipboard"
+        img = out_surface.write_to_png(fileName)
 
         img = GdkPixbuf.Pixbuf.new_from_file(fileName)
         clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
         clipboard.set_image(img)
         clipboard.store()
         os.remove(fileName)
-
-
 
     @Gtk.Template.Callback()
     def onUndo(self, button):
@@ -430,9 +424,8 @@ class LensyWindow(Gtk.ApplicationWindow):
             if len(self.arr_path) == 0:
                 self.undo_btn.set_sensitive(False)
 
-
-
         self.redo_btn.set_sensitive(True)
+
     @Gtk.Template.Callback()
     def onRedo(self, button):
         self.numberCounter += 1
@@ -455,8 +448,9 @@ class LensyWindow(Gtk.ApplicationWindow):
 
     @Gtk.Template.Callback()
     def on_save_to_file_btn_clicked(self, btn):
-        dialog = Gtk.FileChooserDialog(_("Save image"), None, Gtk.FileChooserAction.SAVE, (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
-        Gtk.STOCK_SAVE, Gtk.ResponseType.OK))
+        dialog = Gtk.FileChooserDialog(_("Save image"), None, Gtk.FileChooserAction.SAVE,
+                                       (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
+                                        Gtk.STOCK_SAVE, Gtk.ResponseType.OK))
         final_filename = 'Lensy_' + datetime.today().strftime('%Y-%m-%d-%H:%M:%S') + '.png'
         dialog.set_current_name(final_filename)
         dialog.set_do_overwrite_confirmation(True)
@@ -468,11 +462,8 @@ class LensyWindow(Gtk.ApplicationWindow):
             cr = cairo.Context(out_surface)
             if self.arr_path:
                 self.reDraw(cr)
-            img = out_surface.write_to_png (filename)
+            img = out_surface.write_to_png(filename)
         dialog.destroy()
-
-
-
 
     def _open_popover_at(self, x, y):
         rectangle = Gdk.Rectangle()
@@ -484,33 +475,33 @@ class LensyWindow(Gtk.ApplicationWindow):
         self.text_popover.set_relative_to(self)
         self.text_popover.popup()
 
-    def reDraw(self,cr):
+    def reDraw(self, cr):
         for i in self.arr_path:
             if i[0] == "Square":
-                cr.rectangle(i[2], i[3], i[4]-i[2], i[5]-i[3])
-                cr.set_source_rgba(i[1][0],i[1][1],i[1][2],i[1][3])
+                cr.rectangle(i[2], i[3], i[4] - i[2], i[5] - i[3])
+                cr.set_source_rgba(i[1][0], i[1][1], i[1][2], i[1][3])
                 cr.fill()
                 cr.set_line_width(i[6])
             elif i[0] == "Square(NoFill)":
-                cr.rectangle(i[2], i[3], i[4]-i[2], i[5]-i[3])
-                cr.set_source_rgba(i[1][0],i[1][1],i[1][2],i[1][3])
+                cr.rectangle(i[2], i[3], i[4] - i[2], i[5] - i[3])
+                cr.set_source_rgba(i[1][0], i[1][1], i[1][2], i[1][3])
                 cr.stroke()
                 cr.set_line_width(i[6])
             elif i[0] == "Line":
-                cr.set_source_rgba(i[1][0],i[1][1],i[1][2],i[1][3])
+                cr.set_source_rgba(i[1][0], i[1][1], i[1][2], i[1][3])
                 cr.set_line_width(i[6])
                 cr.set_line_cap(cairo.LINE_CAP_ROUND)
                 cr.move_to(i[2], i[3])
                 cr.line_to(i[4], i[5])
                 cr.stroke()
             elif i[0] == "Arrow":
-                cr.set_source_rgba(i[1][0],i[1][1],i[1][2],i[1][3])
+                cr.set_source_rgba(i[1][0], i[1][1], i[1][2], i[1][3])
                 cr.set_line_width(i[6])
                 cr.set_line_cap(cairo.LINE_CAP_ROUND)
                 cr.move_to(i[2], i[3])
                 cr.line_to(i[4], i[5])
                 cr.stroke()
-                angle = math.atan2 (i[5]-i[3],i[4]-i[2]) + math.pi
+                angle = math.atan2(i[5] - i[3], i[4] - i[2]) + math.pi
                 arrow_degrees = 0.5
                 arrow_length = 20
                 xA = None
@@ -522,53 +513,47 @@ class LensyWindow(Gtk.ApplicationWindow):
                 xB = i[4] + arrow_length * math.cos(angle + arrow_degrees)
                 yB = i[5] + arrow_length * math.sin(angle + arrow_degrees)
 
-                cr.move_to(i[4],i[5])
-                cr.line_to(xA,yA)
-                cr.move_to(i[4],i[5])
-                cr.line_to(xB,yB)
+                cr.move_to(i[4], i[5])
+                cr.line_to(xA, yA)
+                cr.move_to(i[4], i[5])
+                cr.line_to(xB, yB)
                 cr.stroke()
             elif i[0] == "Numbers":
 
-
-                cr.set_source_rgba(i[1][0],i[1][1],i[1][2],i[1][3])
-                cr.arc(i[2], i[3], 15, 0, 2*math.pi)
+                cr.set_source_rgba(i[1][0], i[1][1], i[1][2], i[1][3])
+                cr.arc(i[2], i[3], 15, 0, 2 * math.pi)
                 cr.fill()
-                cr.set_source_rgba(255, 255, 255,1)
-                cr.select_font_face("Purisa", cairo.FONT_SLANT_NORMAL,cairo.FONT_WEIGHT_BOLD)
+                cr.set_source_rgba(255, 255, 255, 1)
+                cr.select_font_face("Purisa", cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_BOLD)
                 cr.set_font_size(12)
-                text=i[6]
+                text = i[6]
                 if int(text) > 9:
-                    cr.move_to(i[4]-4,i[5])
+                    cr.move_to(i[4] - 4, i[5])
                 else:
-                    cr.move_to(i[4],i[5])
+                    cr.move_to(i[4], i[5])
 
                 cr.show_text(text)
             elif i[0] == "Ellipse":
                 cr.save()
-                cr.set_source_rgba(i[1][0],i[1][1],i[1][2],i[1][3])
+                cr.set_source_rgba(i[1][0], i[1][1], i[1][2], i[1][3])
                 cr.set_line_width(i[6])
                 w = i[4] - i[2]
                 h = i[5] - i[3]
-                cr.translate(i[2] + w /2. , i[3] + h /2. )
-                cr.scale(w /2. , h/2.)
+                cr.translate(i[2] + w / 2., i[3] + h / 2.)
+                cr.scale(w / 2., h / 2.)
                 cr.arc(0, 0, 1, 0, 2 * math.pi)
                 cr.fill()
                 cr.restore()
 
-
-    def on_delete_event(self,w,h):
+    def on_delete_event(self, w, h):
         os.remove(self.fileName)
 
-
     @Gtk.Template.Callback()
-    def on_share_btn_clicked(self,button):
+    def on_share_btn_clicked(self, button):
         self.share_btn.set_visible(False)
         thread = threading.Thread(target=self.ImgurUpload)
         thread.daemon = True
         thread.start()
-
-
-
 
     def ImgurUpload(self):
         self.spinner_btn.set_visible(True)
@@ -577,16 +562,15 @@ class LensyWindow(Gtk.ApplicationWindow):
         cr = cairo.Context(share)
         if self.arr_path:
             self.reDraw(cr)
-        fileName ="/tmp/lensy_share.png"
+        fileName = "/tmp/lensy_share.png"
         img = share.write_to_png(fileName)
-        client = ImgurClient('bbe6f387229468f',None)
+        client = ImgurClient('bbe6f387229468f', None)
         image = client.upload_from_path(fileName)
         self.notification = Notify.Notification.new("Lensy", ("Success.The file link is copied to the clipboard"))
         self.notification.show()
         clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
-        clipboard.set_text(image['link'],-1)
+        clipboard.set_text(image['link'], -1)
         clipboard.store()
         os.remove(fileName)
         self.spinner_btn.set_visible(False)
         self.share_btn.set_visible(True)
-

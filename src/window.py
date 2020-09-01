@@ -14,15 +14,18 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-import gi
-from gi.repository import Gtk, Gdk, Gio, GdkPixbuf, GLib, Pango, Notify
-import os
-import time
-import cairo
+
 import math
-from datetime import datetime
-from imgurpython import ImgurClient
+import os
 import threading
+import time
+from datetime import datetime
+
+import cairo
+import gi
+from gi.repository import Gdk, GdkPixbuf, Gio, GLib, Gtk, Notify, Pango
+from imgurpython import ImgurClient
+
 from .screenshot import Screenshot
 
 gi.require_version('Gtk', '3.0')

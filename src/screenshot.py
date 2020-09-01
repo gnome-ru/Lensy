@@ -15,8 +15,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from subprocess import PIPE, Popen
+
 from gi.repository import Gdk, Gio, GLib, Notify
-from subprocess import Popen, PIPE
 
 
 class Screenshot:

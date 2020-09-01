@@ -16,13 +16,13 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import sys
-import gi
-
-from gi.repository import Gtk, Gio, GLib
 from datetime import datetime
 
-from .window import LensyWindow
+import gi
+from gi.repository import Gio, GLib, Gtk
+
 from .screenshot import Screenshot
+from .window import LensyWindow
 
 gi.require_version('Gtk', '3.0')
 

@@ -1,3 +1,4 @@
-imgurpython
 # PyGObject
+imgur-python
+imgurpython  # Remove in next version
 requests
